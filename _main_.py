@@ -1,21 +1,23 @@
 from selenium import webdriver
-from selenium.webdriver.common.by import By
 import time
 
 from scrapping import scrapping
 
 
 def setup_driver():
-    options = webdriver.ChromeOptions()
-    return webdriver.Chrome(options=options)
+    options = webdriver.FirefoxOptions()
+    return webdriver.Firefox(options=options)
 
 
 def main():
     driver = setup_driver()
-    url = "https://news.yahoo.com/"
+    url = "https://apnews.com/"
     scrapping(driver, url)
     time.sleep(200)
     driver.quit()
 
 
+# TODO:
+# Accept cookies
+# Validate elements were not found
 main()
