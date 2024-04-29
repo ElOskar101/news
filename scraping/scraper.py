@@ -21,8 +21,12 @@ class Scrapper:
         driver = self.driver
         v = Validator()
         utils = Utils()
-        limit = 0
-        key = 'mosquito'
+
+        keys = utils.get_work_items()
+        limit = keys['months']
+        key = keys['search_phrase']
+        category = keys['category']
+
         last_required_month = True  # Flag for previous months limit. Must be false in case there are no more month left
         url = "https://apnews.com/"
         # url = f'https://apnews.com/search?q={key}&s=3'
@@ -49,7 +53,7 @@ class Scrapper:
 
         for category in categories_section:
             section_text = v.get_text(driver, 'css:span', category)
-            if section_text.lower().strip() == 'stories':
+            if section_text.lower().strip() == category:
                 driver.click_element(driver.find_element('css:input[type="checkbox"]', category))
                 break
             else:
