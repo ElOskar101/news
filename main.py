@@ -1,34 +1,24 @@
-from selenium import webdriver
-from RPA.Browser.Selenium import Selenium
 import time
+from scraping.scraper import Scrapper
+from utils.logging import Logger
 
-
-def setup_driver():
-    return Selenium()
 
 def main():
-    driver = setup_driver()
-    url = "https://apnews.com/"
-    scrapping(driver, url)
-    time.sleep(200)
-    # driver.quit()
+    scraper = Scrapper()
+    logger = Logger()
+
+    logger.set_logger()
+    logging = logger.get_logger()
+    logging.info('Automation is starting')
+    scraper.scrape()
+    logging.info('Automation just finished')
+    # time.sleep(300)
+    scraper.close()
 
 
-
+if __name__ == "__main__":
+    main()
 
 # TODO:
 # Accept cookies
 # Validate elements were not found
-main()
-
-"""
-
-
-work_items = WorkItems()
-work_items.get_input_work_item()
-work_item = work_items.get_work_item_variables()
-
-{
-    "key":"value"
-}
-"""
