@@ -23,17 +23,17 @@ class Scrapper:
         utils = Utils()
 
         keys = utils.get_work_items()
-        limit = keys['months']
-        key = keys['search_phrase']
-        news_category = keys['category']
+        limit = keys['months']  # 1
+        key = keys['search_phrase']  # 'Mosquito'
+        news_category = keys['category']  # 'stories'
 
         last_required_month = True  # Flag for previous months limit. Must be false in case there are no more month left
         url = "https://apnews.com/"
         driver.open_available_browser(url, browser_selection='chrome')
-        time.sleep(5)
-        driver.click_element("//*[contains(text(),  'I Accept')]")
-        driver.capture_page_screenshot('output/screenshot2.png')
-        time.sleep(5)
+
+        if not v.validate(driver, 'css:button.SearchOverlay-search-button', 10):
+            driver.click_element_if_visible('css:.bx-close.bx-close-link.bx-close-inside')
+            driver.click_element_if_visible("//*[contains(text(),  'I Accept')]")
 
         driver.click_element_if_visible('css:button.SearchOverlay-search-button')
         if not v.validate(driver, 'css:input.SearchOverlay-search-input', 10):
@@ -58,6 +58,7 @@ class Scrapper:
             section_text = v.get_text(driver, 'css:span', category)
             if section_text.lower().strip() == news_category:
                 driver.click_element(driver.find_element('css:input[type="checkbox"]', category))
+                time.sleep(2)
                 break
             else:
                 print('No categories were found: ', section_text)
@@ -71,7 +72,7 @@ class Scrapper:
             articles = driver.find_elements('css:.PageList-items > .PageList-items-item', content)
             articles.pop(0)
             for i in range(len(articles)):
-                driver.capture_page_screenshot('output/img.png')
+                time.sleep(2)
                 promo_content = driver.find_element('css:.PagePromo > .PagePromo-content', articles[i])
                 title = v.get_text(driver, 'css:div.PagePromo-title > a > span', promo_content)
                 desc = v.get_text(driver, 'css:.PagePromo-description', promo_content)
