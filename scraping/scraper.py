@@ -31,19 +31,17 @@ class Scrapper:
         url = "https://apnews.com/"
         driver.open_available_browser(url, browser_selection='chrome')
         time.sleep(5)
-        driver.capture_page_screenshot('output/screenshot.png')
         driver.click_element("//*[contains(text(),  'I Accept')]")
         driver.capture_page_screenshot('output/screenshot2.png')
         time.sleep(5)
 
-        driver.capture_page_screenshot('output/img.png')
         driver.click_element_if_visible('css:button.SearchOverlay-search-button')
         if not v.validate(driver, 'css:input.SearchOverlay-search-input', 10):
             return False
         search_box = driver.find_element('css:input.SearchOverlay-search-input')
         if search_box:
             time.sleep(2)
-            driver.input_text(search_box, "mosquito")
+            driver.input_text(search_box, key)
             driver.press_keys(search_box, 'ENTER')
 
         if not v.validate(driver, 'css:main.SearchResultsModule-main', 10):
@@ -73,6 +71,7 @@ class Scrapper:
             articles = driver.find_elements('css:.PageList-items > .PageList-items-item', content)
             articles.pop(0)
             for i in range(len(articles)):
+                driver.capture_page_screenshot('output/img.png')
                 promo_content = driver.find_element('css:.PagePromo > .PagePromo-content', articles[i])
                 title = v.get_text(driver, 'css:div.PagePromo-title > a > span', promo_content)
                 desc = v.get_text(driver, 'css:.PagePromo-description', promo_content)
@@ -85,7 +84,6 @@ class Scrapper:
 
                 try:
                     image = driver.find_element('css:img', articles[i])
-                    alt_name = driver.get_element_attribute(image, 'alt')
                     if image:
                         name = f"output/image-{utils.generate_file_name()}.png"
                         driver.screenshot(image, name)
