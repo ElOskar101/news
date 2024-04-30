@@ -25,12 +25,11 @@ class Scrapper:
         keys = utils.get_work_items()
         limit = keys['months']
         key = keys['search_phrase']
-        category = keys['category']
+        news_category = keys['category']
 
         last_required_month = True  # Flag for previous months limit. Must be false in case there are no more month left
         url = "https://apnews.com/"
-        # url = f'https://apnews.com/search?q={key}&s=3'
-        driver.open_available_browser(url, browser_selection='firefox')
+        driver.open_available_browser(url, browser_selection='chrome')
 
         driver.click_element_if_visible('css:button.SearchOverlay-search-button')
         if not v.validate(driver, 'css:input.SearchOverlay-search-input', 10):
@@ -53,7 +52,7 @@ class Scrapper:
 
         for category in categories_section:
             section_text = v.get_text(driver, 'css:span', category)
-            if section_text.lower().strip() == category:
+            if section_text.lower().strip() == news_category:
                 driver.click_element(driver.find_element('css:input[type="checkbox"]', category))
                 break
             else:
