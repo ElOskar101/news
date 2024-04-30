@@ -13,7 +13,7 @@ def main():
     logging.info('Automation is starting')
     scraper.scrape()
     logging.info('Automation just finished')
-    time.sleep(300)
+    time.sleep(1)
     scraper.close()
 
 

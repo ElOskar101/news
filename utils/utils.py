@@ -11,6 +11,7 @@ class Utils:
     def __init__(self):
         pass
 
+    # Only to get Work-items
     @staticmethod
     def get_work_items():
         work_items = WorkItems()
@@ -18,10 +19,12 @@ class Utils:
         work_item = work_items.get_work_item_variables()
         return work_item
 
+    # To count how many times is a word present in text either description o title
     @staticmethod
     def count_phrase_occurrences(text, word):
         return sum(1 for w in text.split() if w == word)
 
+    # To validate if is there any currency in the description or title fallowing a format
     @staticmethod
     def validate_currency_format(text):
         # possible formats: $11.1 | $111,111.11 | 11 dollars | 11 USD
@@ -35,8 +38,10 @@ class Utils:
     def validate_news_date_range(date, limit):
         if date.strip() == '' or date is None:
             return False
-        if not date.lower().startswith('updated'):  # Means that date is a minute | hours ago (always current month)
+        if 'now' in date.lower() or 'ago' in date.lower():  # Means that date is x time ago (always current month)
             return True
+        limit -= 1 if limit else limit
+
         pattern = r"(\w+ \d{1,2}\, \d{4})$"
         date = re.findall(pattern, date)[0].strip()
         news_date = datetime.strptime(date, '%B %d, %Y')
@@ -47,6 +52,7 @@ class Utils:
         end_date = current_date.replace(day=last_day_of_month)
         return start_date <= news_date <= end_date
 
+    # generate a random filename for pictures
     @staticmethod
     def generate_file_name():
         return ''.join(random.choices(string.ascii_uppercase + string.digits, k=7))
