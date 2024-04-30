@@ -73,7 +73,9 @@ class Scrapper:
             if not v.validate(driver, 'css:main.SearchResultsModule-main', 10):
                 continue
 
-            time.sleep(2)
+            time.sleep(3)
+            if not v.validate(driver, 'css:main.SearchResultsModule-main', 10):
+                return False
             content = driver.find_element('css:main.SearchResultsModule-main')
             articles = driver.find_elements('css:.PageList-items > .PageList-items-item', content)
             articles.pop(0)
@@ -92,9 +94,9 @@ class Scrapper:
         driver = self.driver
         v = Validator()
         utils = Utils()
-
+        time.sleep(4)
         for i in range(len(articles)):  # Loop through the articles extracting all the news information requested
-            time.sleep(2)
+
             promo_content = driver.find_element('css:.PagePromo > .PagePromo-content', articles[i])
             title = v.get_text(driver, 'css:div.PagePromo-title > a > span', promo_content)
             desc = v.get_text(driver, 'css:.PagePromo-description', promo_content)
