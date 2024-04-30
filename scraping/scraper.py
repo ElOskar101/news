@@ -30,6 +30,12 @@ class Scrapper:
         last_required_month = True  # Flag for previous months limit. Must be false in case there are no more month left
         url = "https://apnews.com/"
         driver.open_available_browser(url, browser_selection='chrome')
+        time.sleep(5)
+        driver.capture_page_screenshot('output/screenshot.png')
+        driver.click_element("//*[contains(text(),  'I Accept')]")
+        driver.capture_page_screenshot('output/screenshot2.png')
+        time.sleep(5)
+
         driver.capture_page_screenshot('output/img.png')
         driver.click_element_if_visible('css:button.SearchOverlay-search-button')
         if not v.validate(driver, 'css:input.SearchOverlay-search-input', 10):
