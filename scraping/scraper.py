@@ -11,11 +11,12 @@ import os
 class Scrapper:
     def __init__(self):
         self.values = []
+        self.logger = Logger().get_logger()
         utils = Utils()
         keys = utils.get_work_items()
-        self.limit = keys['months']  # 1
-        self.key = keys['search_phrase']  # 'planes'
-        self.news_category = keys['category']  # 'stories'
+        self.limit = keys['months']
+        self.key = keys['search_phrase']
+        self.news_category = keys['category']
         self.last_required_month = True  # Flag for previous months limit.
         self.driver = Selenium()
 
@@ -26,6 +27,7 @@ class Scrapper:
     # Open browser
     def open(self):
         driver = self.driver
+        self.logger.info('Open browser')
         url = "https://apnews.com/"
         driver.open_available_browser(url, browser_selection='chrome')
 
@@ -33,11 +35,34 @@ class Scrapper:
     def scrape(self):
         driver = self.driver
         v = Validator()
-        self.open() # Open browser
-        time.sleep(3)
+        self.open()  # Open browser
+        self.search_news()  # Search logic
+
+        self.logger.info('Loop starting for news articles pagination')
+        while self.last_required_month:  # Loop through the pages until there are no more news in the given range
+            if not v.validate(driver, 'css:div.PageList-items', 10):
+                continue
+
+            content = driver.find_element('css:div.PageList-items')
+            articles = driver.find_elements('css:div.PageList-items-item', content)
+            articles.pop(0)  # always first new is sponsored news, or it could be out of range
+
+            self.get_news(articles)  # loop news method
+
+            if self.last_required_month:
+                driver.click_element('css:.Pagination-nextPage')
+            else:
+                self.logger.info('No more news available in this range. End of process')
+
+        self.insert_data(self.values)
+
+    # Search news articles
+    def search_news(self):
+        driver = self.driver
+        v = Validator()
+        v.validate(driver, 'css:.Page-header-bar', 10)
 
         driver.click_element_if_visible("//*[contains(text(),  'I Accept')]")
-
         if not v.validate(driver, 'css:button.SearchOverlay-search-button', 10):
             driver.click_element_if_visible('css:.bx-close.bx-close-link.bx-close-inside')
 
@@ -46,57 +71,39 @@ class Scrapper:
             return False
         search_box = driver.find_element('css:input.SearchOverlay-search-input')
         if search_box:
-            time.sleep(2)
             driver.input_text(search_box, self.key)
             driver.press_keys(search_box, 'ENTER')
-
-        if not v.validate(driver, 'css:main.SearchResultsModule-main', 10):
+        self.logger.info('Searching for: ' + self.key)
+        if not v.validate(driver, 'css:div.PageList-items', 10):
             return False
-        time.sleep(2)
+        if not v.validate(driver, 'css:select.Select-input', 10):
+            return False
+
         driver.select_from_list_by_index('css:select.Select-input', '1')
-        if not v.validate(driver, 'css:div.SearchFilter-heading', 10):
+        self.logger.info('Selecting sort')
+        time.sleep(2)  # Not immediately reaction and the next wait would be already loaded meaning a false true
+        if not v.validate(driver, 'css:div.PageList-items', 10):
             return False
 
         driver.click_element('css:div.SearchFilter-heading')
         categories_section = driver.find_elements('css:ul.SearchFilter-items > li')
-
+        self.logger.info('Selecting category')
         for category in categories_section:  # Select a category
             section_text = v.get_text(driver, 'css:span', category)
             if section_text.lower().strip() == self.news_category:
                 driver.click_element(driver.find_element('css:input[type="checkbox"]', category))
-                time.sleep(2)
+                self.logger.info('Selecting news category')
+                time.sleep(2)  # Not immediately reaction and the next wait would be already loaded meaning a false true
                 break
             else:
-                print('No categories were found: ', section_text)
-
-        while self.last_required_month:  # Loop through the pages until there are no more news in the given range
-            if not v.validate(driver, 'css:main.SearchResultsModule-main', 10):
-                continue
-
-            time.sleep(3)
-            if not v.validate(driver, 'css:main.SearchResultsModule-main', 10):
-                return False
-            content = driver.find_element('css:main.SearchResultsModule-main')
-            articles = driver.find_elements('css:.PageList-items > .PageList-items-item', content)
-            articles.pop(0)
-
-            self.get_news(articles)  # loop news method
-
-            if self.last_required_month:
-                driver.click_element('css:.Pagination-nextPage')
-            else:
-                print('No more news available in this range. End of process')
-
-        self.insert_data(self.values)
+                self.logger.warning('No categories were found: %s', section_text)
 
     # Loop news articles
     def get_news(self, articles):
         driver = self.driver
         v = Validator()
         utils = Utils()
-        time.sleep(4)
         for i in range(len(articles)):  # Loop through the articles extracting all the news information requested
-
             promo_content = driver.find_element('css:.PagePromo > .PagePromo-content', articles[i])
             title = v.get_text(driver, 'css:div.PagePromo-title > a > span', promo_content)
             desc = v.get_text(driver, 'css:.PagePromo-description', promo_content)
@@ -114,7 +121,7 @@ class Scrapper:
                     driver.screenshot(image, name)
                     time.sleep(1)
             except Exception as e:
-                print(e)
+                self.logger.error('Exception occurred: %s', e)
 
             self.values.append([title, desc, date.replace('Updated ', ''),
                                 phrase_count, does_it_have_currency_format, os.path.basename(name)])
@@ -123,13 +130,10 @@ class Scrapper:
                 break
 
     # It sends needed information in order to save it in a .xlsx file
-    @staticmethod
-    def insert_data(data: list):
-        logger = Logger()
-        logging = logger.get_logger()
-        logging.info('Inserting rows in Excel file')
+    def insert_data(self, data: list):
+        self.logger.info('Inserting rows in Excel file')
         filer = Filer()
         filer.create_excel()
         filer.insert_data(data=data, start_col=1, start_row=1)
         filer.save()
-        logging.info('Excel file saved')
+        self.logger.info('Excel file saved')
