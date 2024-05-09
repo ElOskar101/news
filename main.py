@@ -7,7 +7,7 @@ def main():
     scraper = Scrapper()
     logging = Logger()
     logger = logging.get_logger()
-    logger.info('Automation is starting')
+    logger.info('Automation is starting...')
     scraper.scrape()
     scraper.close()
     logger.info('Automation just finished')
