@@ -1,4 +1,4 @@
 myapp.log
 .venv
 .idea
-output/*
+!output/
