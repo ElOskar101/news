@@ -1,4 +1,3 @@
 myapp.log
 .venv
 .idea
-!output/
