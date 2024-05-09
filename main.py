@@ -1,10 +1,9 @@
-import time
 from scraping.scraper import Scrapper
 from utils.logging import Logger
 
 
-# Init instances of logging and driver. Call the other functions
 def main():
+    """Main function that runs the scraping process"""
     scraper = Scrapper()
     logging = Logger()
     logger = logging.get_logger()
